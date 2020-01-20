@@ -1,0 +1,84 @@
+﻿@model SearchViewModel
+@{
+    ViewData["Title"] = "Home Page";
+}
+<script>
+    $(() => {
+        $('#search').click(function () {
+            var form = $(this).parents('form');
+            form.validate();
+            if (form.valid()) {
+                $(this).html('Searching...');
+                $(this).prop('disabled', true);
+                $(this).css('cursor', 'not-allowed');
+                GetResults();
+            }
+        });
+    });
+
+    function GetResults() {
+        let searchTerm = $('#SearchTerm').val();
+        let numOfResults = $('#NumOfResults').val();
+
+        $.ajax({
+            url: '/Home/GetResults',
+            type: 'GET',
+            contentType: 'application/json',
+            data: {
+                searchTerm: searchTerm,
+                numOfResults: numOfResults
+            },
+            success: function (response) {
+                if (response.success) {
+                    var searchResults = $('#searchResults');
+                    searchResults.empty();
+                    $.each(response.searchResults, function (index, result) {
+                        $('<div class="card my-3"><div class="card-header">'
+                            + result.title + '</div><div class="card-body"><p class="card-text">'
+                            + result.summary + '</p><a href="'
+                            + result.url + '" target="_blank">' + result.url + '</a></div></div>', {
+                        }).appendTo(searchResults);
+                    });
+                } else {
+                    alert(response.responseText);
+                }
+            },
+            error: function () {
+                $('#searchResults').empty();
+                alert("Oops, an error occurred");
+            },
+            complete : function () {
+                $('#search').prop('disabled', false);
+                $('#search').css('cursor', 'default');
+                $('#search').html('Search');
+            }
+        });
+    }
+</script>
+<div class="row">
+    <div class="offset-md-2 col-md-10">
+        <form class="form-inline">
+            <label class="mb-2 mr-2" asp-for="SearchTerm">Enter Search Term:</label>
+            <input asp-for="SearchTerm" type="text" class="form-control mb-2 mr-sm-2" placeholder="Search">
+            <select asp-for="NumOfResults" class="form-control mb-2 mr-sm-2" title="Number Of Results">
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+            <button id="search" type="button" class="btn btn-primary mb-2">Search</button>
+            <span asp-validation-for="SearchTerm" class="text-danger mb-2 ml-1"></span>
+        </form>
+    </div>
+</div>
+<div class="row">
+    <div class="offset-md-1 col-md-10">
+        <div id="searchResults"></div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
