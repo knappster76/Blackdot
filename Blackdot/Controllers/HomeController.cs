@@ -70,6 +70,7 @@ namespace Blackdot.Controllers
 
             var results = new List<SearchResultViewModel>();
 
+            // I have used the HTML Agility Pack to traverse and select the HTML nodes
             // create a new HTML document and load the search result HTML string
             var doc = new HtmlDocument();
             doc.LoadHtml(result);
